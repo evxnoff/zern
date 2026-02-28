@@ -14,37 +14,40 @@ if(isset($_POST['submit'])) {
         $getName = $db->prepare('SELECT * FROM users WHERE name = ?');
         $getName->execute([$name]);
 
-        if($getMail->rowCount() == 0 && $getName->rowCount() == 0) {
+        if($getMail->rowCount() > 0 || $getName->rowCount() > 0) {
+            $error = 'Compte déjà existant.';
+        } else {
             // Créer l'utilisateur
             $insertUser = $db->prepare('INSERT INTO users(name, mail, pass) VALUES(?, ?, ?)');
             $insertUser->execute([$name, $mail, $pass]);
-        } else {
-            echo 'Compte déjà existant.';
-            exit;
-        }
 
-        // Récupérer l'utilisateur
-        $getUser = $db->prepare('SELECT * FROM users WHERE mail = ?');
-        $getUser->execute([$mail]);
-        $user = $getUser->fetch();
+            // Récupérer l'utilisateur nouvellement créé
+            $getUser = $db->prepare('SELECT * FROM users WHERE mail = ?');
+            $getUser->execute([$mail]);
+            $user = $getUser->fetch();
 
-        if ($user && password_verify($_POST['pass'], $user['pass'])) {
-            $_SESSION['name'] = $user['name'];
-            $_SESSION['mail'] = $user['mail'];
-            $_SESSION['id'] = $user['id'];
-            header('Location: /web');
-            exit;
+            if ($user) {
+                $_SESSION['name'] = $user['name'];
+                $_SESSION['mail'] = $user['mail'];
+                $_SESSION['id'] = $user['id'];
+                header('Location: /web');
+                exit;
+            }
         }
+    } else {
+        $error = 'Veuillez remplir tous les champs.';
     }
 }
 ?>
 <!DOCTYPE html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ziven</title>
 </head>
 <body>
+    <?php if(!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
     <form action="" method="post">
         <input type="text" name="name" placeholder="Name" required>
         <br/>
