@@ -6,7 +6,7 @@ if(isset($_POST['submit'])) {
         // Valeurs
         $name = htmlspecialchars($_POST['name']);
         $mail = htmlspecialchars($_POST['mail']);
-        $pass = sha1($_POST['pass']);
+        $pass = password_hash($_POST['pass']);
 
         // Creer l'utilisateur
         $insertUser = $db->prepare('INSERT INTO users(name, mail, pass)VALUES(?, ?, ?)');
@@ -18,6 +18,8 @@ if(isset($_POST['submit'])) {
         $getName->execute(array($name));
         if($getMail->rowCount() == 0 && $getName->rowCount() == 0) {
             $insertUser->execute(array($name, $mail, $pass));
+        } else {
+            echo'Compte deja existant.';
         }
 
         // Recuperer son ID
@@ -28,7 +30,6 @@ if(isset($_POST['submit'])) {
         if ($getUser->rowCount() > 0) {
             $_SESSION['name'] = $name;
             $_SESSION['mail'] = $mail;
-            $_SESSION['pass'] = $pass;
             $_SESSION['id'] = $getUser->fetch()['id'];
             header('Location: /web');
         }
