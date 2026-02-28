@@ -1,6 +1,6 @@
-## 💬 À propos de Zern
+## 💬 À propos de Ziven
 
-**Zern** est une messagerie web développée en **HTML, CSS, PHP et JavaScript**.
+**Ziven** est une messagerie web développée en **HTML, CSS, PHP et JavaScript**.
 Le projet a pour objectif de proposer une plateforme de communication simple, rapide et accessible directement depuis un navigateur web.
 
 
