@@ -1,37 +1,39 @@
 <?php
 session_start();
 require_once __DIR__ . '/../config.php';
+
 if(isset($_POST['submit'])) {
-    if(!empty($_POST['name']) AND !empty($_POST['mail']) AND !empty($_POST['pass'])) {
-        // Valeurs
+    if(!empty($_POST['name']) && !empty($_POST['mail']) && !empty($_POST['pass'])) {
         $name = htmlspecialchars($_POST['name']);
         $mail = htmlspecialchars($_POST['mail']);
-        $pass = password_hash($_POST['pass']);
+        $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
 
-        // Creer l'utilisateur
-        $insertUser = $db->prepare('INSERT INTO users(name, mail, pass)VALUES(?, ?, ?)');
-
-        // Verifier si le compte existe deja
+        // Vérifier si le compte existe déjà
         $getMail = $db->prepare('SELECT * FROM users WHERE mail = ?');
-        $getMail->execute(array($mail));
+        $getMail->execute([$mail]);
         $getName = $db->prepare('SELECT * FROM users WHERE name = ?');
-        $getName->execute(array($name));
+        $getName->execute([$name]);
+
         if($getMail->rowCount() == 0 && $getName->rowCount() == 0) {
-            $insertUser->execute(array($name, $mail, $pass));
+            // Créer l'utilisateur
+            $insertUser = $db->prepare('INSERT INTO users(name, mail, pass) VALUES(?, ?, ?)');
+            $insertUser->execute([$name, $mail, $pass]);
         } else {
-            echo'Compte deja existant.';
+            echo 'Compte déjà existant.';
+            exit;
         }
 
-        // Recuperer son ID
-        $getUser = $db->prepare('SELECT * FROM users WHERE mail = ? AND pass = ?');
-        $getUser->execute(array($mail, $pass));
+        // Récupérer l'utilisateur
+        $getUser = $db->prepare('SELECT * FROM users WHERE mail = ?');
+        $getUser->execute([$mail]);
+        $user = $getUser->fetch();
 
-        // Creer sa session
-        if ($getUser->rowCount() > 0) {
-            $_SESSION['name'] = $name;
-            $_SESSION['mail'] = $mail;
-            $_SESSION['id'] = $getUser->fetch()['id'];
+        if ($user && password_verify($_POST['pass'], $user['pass'])) {
+            $_SESSION['name'] = $user['name'];
+            $_SESSION['mail'] = $user['mail'];
+            $_SESSION['id'] = $user['id'];
             header('Location: /web');
+            exit;
         }
     }
 }
